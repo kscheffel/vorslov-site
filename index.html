@@ -71,7 +71,44 @@ html.night{
   color-scheme:dark;
 }
 html.night body{background:var(--bg)}
-body,.w,.pill,.parrow,.chip,.sticker,.ic{transition-property:background-color,color,box-shadow}
+
+/* ---------- dotted ground + periodic light wave ---------- */
+:root{--dot:rgba(18,18,18,.075);--wave:rgba(255,255,255,.75)}
+html.night{--dot:rgba(241,234,224,.075);--wave:rgba(255,236,210,.32)}
+body::before,body::after{content:"";position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(circle,var(--dot) .9px,transparent 1.5px);background-size:22px 22px;background-position:11px 11px;transition:background-color .8s}
+body::after{background-image:none;-webkit-mask-image:radial-gradient(circle,#000 1.2px,transparent 1.8px);mask-image:radial-gradient(circle,#000 1.2px,transparent 1.8px);
+  -webkit-mask-size:22px 22px;mask-size:22px 22px;-webkit-mask-position:11px 11px;mask-position:11px 11px;overflow:hidden}
+body::after{background:linear-gradient(112deg,transparent 0 38%,var(--wave) 50%,transparent 62% 100%);background-size:70% 100%;background-repeat:no-repeat;
+  animation:lightwave 16s cubic-bezier(.45,0,.35,1) infinite}
+@keyframes lightwave{0%{background-position:-90% 0;opacity:0}6%{opacity:1}30%{background-position:190% 0;opacity:1}34%,100%{background-position:190% 0;opacity:0}}
+
+/* ---------- night: soft glows here and there ---------- */
+.glows{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity 2.5s;overflow:hidden}
+html.night .glows{opacity:1}
+.glows i{position:absolute;width:46vmin;height:46vmin;border-radius:50%;background:radial-gradient(circle,var(--g) 0%,transparent 62%);animation:glowDrift var(--d,30s) ease-in-out infinite alternate;will-change:transform,opacity}
+.glows i:nth-child(1){--g:rgba(255,184,110,.16);left:6%;top:8%;--d:34s}
+.glows i:nth-child(2){--g:rgba(150,205,120,.12);right:2%;top:22%;--d:41s;animation-delay:-14s}
+.glows i:nth-child(3){--g:rgba(120,180,215,.12);left:38%;bottom:-8%;--d:37s;animation-delay:-7s}
+.glows i:nth-child(4){--g:rgba(255,214,140,.11);right:20%;bottom:6%;--d:44s;animation-delay:-25s}
+.glows i:nth-child(5){--g:rgba(230,160,190,.09);left:-6%;top:52%;--d:39s;animation-delay:-19s}
+@keyframes glowDrift{0%{transform:translate(0,0) scale(1);opacity:.55}35%{opacity:1}70%{opacity:.4}100%{transform:translate(9vmin,-7vmin) scale(1.25);opacity:.9}}
+html.night .live.on{box-shadow:0 0 .8rem .1rem rgba(47,168,79,.55)}
+html.night .w-toggle .sw::before{box-shadow:0 0 .9rem .15rem var(--lime)}
+html.night .w-toggle .beanic{box-shadow:0 0 1.4rem rgba(150,205,120,.18)}
+html.night .w-location .sun{opacity:.8;transform:translateY(0) scale(.8);background:radial-gradient(circle at 38% 36%,#FFF9E6,#F3E6BC 58%,#D8C79A);animation:moonBreath 7s ease-in-out infinite}
+html.night .w-location.hot .sun{opacity:1;transform:translateY(0) scale(1)}
+@keyframes moonBreath{0%,100%{box-shadow:0 0 1.4rem rgba(255,240,200,.35)}50%{box-shadow:0 0 2.4rem rgba(255,240,200,.6)}}
+html.night .stat-num .od{text-shadow:0 0 1.2rem rgba(255,236,210,.28)}
+html.night .date .od{text-shadow:0 0 1rem rgba(255,236,210,.22)}
+html.night .w-brew .ring .fg{filter:drop-shadow(0 0 .5rem rgba(241,234,224,.35))}
+html.night .w-roast canvas{filter:drop-shadow(0 0 .6rem rgba(255,170,90,.22))}
+html.night .phone{box-shadow:0 0 0 0 rgba(241,234,224,.0);animation:ringIdle 7s ease-in-out infinite,phoneGlow 5s ease-in-out infinite}
+@keyframes phoneGlow{0%,100%{box-shadow:0 0 .6rem rgba(241,234,224,.12)}50%{box-shadow:0 0 1.8rem rgba(241,234,224,.28)}}
+html.night .w-clock .sec,html.night .w-clock circle.hub{filter:drop-shadow(0 0 .35rem rgba(255,120,90,.55))}
+html.night .w-route .ship{filter:drop-shadow(0 0 .5rem rgba(255,236,210,.45))}
+html.night .w-weather .sky{filter:drop-shadow(0 0 .7rem rgba(255,224,160,.28))}
+html.night .pill::after{opacity:.55}
 body{transition:background-color .8s}
 html,body{height:100%}
 html{font-size:min(calc(100vw / 174.4), calc(100vh / 103.2));-webkit-text-size-adjust:100%}
@@ -327,8 +364,9 @@ canvas{display:block}
 .w-brew .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .w-brew .ring .bg{fill:none;stroke:var(--ring-bg);stroke-width:7}
 .w-brew .ring .fg{fill:none;stroke:var(--orange);stroke-width:7;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:283}
-.w-brew .ring .sec{position:absolute;inset:0;display:grid;place-items:center;font-size:2.6rem;font-weight:300;letter-spacing:-.03em}
-.w-brew .ring .sec small{font-size:1.1rem;font-weight:400;color:var(--ink-3);margin-left:.15rem}
+.w-brew .ring .sec{position:absolute;inset:0;display:grid;place-items:center;font-size:2.6rem;font-weight:300;letter-spacing:-.03em;line-height:1}
+.w-brew .ring .sec>*{grid-area:1/1}
+.w-brew .ring .sec small{font-size:1.1rem;font-weight:400;color:var(--ink-3);line-height:1;letter-spacing:0;transform:translateY(1.7rem)}
 .w-brew .info b{display:block;font-size:1.9rem;font-weight:600;letter-spacing:-.01em}
 .w-brew .info .dose{font-family:var(--mono);font-size:1.25rem;margin-top:.6rem;color:var(--ink-2)}
 .w-brew .info .cap{margin-top:1rem}
@@ -341,7 +379,7 @@ canvas{display:block}
 .hint{position:absolute;left:47rem;top:96.5rem;font-family:var(--mono);font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
 
 /* ======================= MOBILE ======================= */
-@media (max-width:760px){
+@media (max-width:760px),(max-width:1100px) and (orientation:portrait){
   html{font-size:10px}
   body{display:block;overflow:auto;overflow-x:hidden;height:auto;padding-inline:0}
   .stage{width:auto;height:auto;padding:0 16px 40px;display:flex;flex-wrap:wrap;gap:12px;overflow-x:clip;align-items:flex-start}
@@ -425,7 +463,7 @@ canvas{display:block}
   .lay-col .parrow{width:46px;height:46px}
   .lay-row .w.w-call{flex:0 0 46%;width:46%;order:0;flex-direction:column;align-items:center;justify-content:center;padding:22px 14px;gap:16px;min-height:0;text-align:center}
   .lay-col .w.w-brew{flex:1;width:100%;order:0;flex-direction:row;align-items:center;justify-content:flex-start;padding:14px 16px;gap:12px;min-height:0}
-  .lay-col .w-brew .ring{width:62px;height:62px}.lay-col .w-brew .ring .sec{font-size:18px}.lay-col .w-brew .ring .sec small{font-size:9px}
+  .lay-col .w-brew .ring{width:62px;height:62px}.lay-col .w-brew .ring .sec{font-size:18px}.lay-col .w-brew .ring .sec small{font-size:9px;transform:translateY(11px)}
   .lay-col .w-brew .info b{font-size:15px}.lay-col .w-brew .info .dose{font-size:10px;margin-top:4px;white-space:nowrap;letter-spacing:0}.lay-col .w-brew .info .cap{font-size:10px;margin-top:6px;white-space:nowrap}
   .date{align-items:center}
   .call-mid{align-items:center}
@@ -445,7 +483,8 @@ canvas{display:block}
   .news-list .src{font-size:10px}
   .toast{font-size:14px;padding:10px 16px}
 }
-@media (max-width:760px) and (min-width:560px){.hello{font-size:54px}}
+@media (max-width:760px) and (min-width:560px),(max-width:1100px) and (min-width:560px) and (orientation:portrait){.hello{font-size:54px}}
+@media (min-width:600px) and (max-width:1100px) and (orientation:portrait){.stage{max-width:600px;margin:0 auto}.w.w-hero.collapsed{left:50%!important;right:auto!important;width:min(100%,600px);transform:translateX(-50%) translateZ(0)}}
 @media (prefers-reduced-motion:reduce){
   .w,.pill,.parrow,.sticker,.sheet,.inner,.compact,.odc .strip{transition-duration:.01s!important}
   .pill::before,.pill::after{animation:none!important}
@@ -453,6 +492,7 @@ canvas{display:block}
 }
 </style>
 
+<div class="glows" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 <div class="stage" id="stage">
 
   <!-- HERO -->
@@ -613,19 +653,19 @@ canvas{display:block}
 <symbol id="mark" viewBox="0 0 283 250"><path fill-rule="evenodd" d="M 0.00 43.54 C 41.58 15.17 90.74 0.00 141.07 0.00 C 191.40 0.00 240.56 15.17 282.14 43.54 L 282.14 206.46 C 240.56 234.83 191.40 250.00 141.07 250.00 C 90.74 250.00 41.58 234.83 0.00 206.46 Z M 12.98 50.51 L 12.98 199.49 C 51.21 224.00 95.66 237.03 141.07 237.03 C 186.48 237.03 230.93 224.00 269.17 199.49 L 269.17 50.51 C 230.93 26.00 186.48 12.97 141.07 12.97 C 95.66 12.97 51.21 26.00 12.98 50.51 Z M 12.98 50.51"/><path d="M 24.41 57.43 C 32.03 52.82 39.91 48.66 48.02 44.99 L 76.03 166.92 L 108.13 27.32 C 117.07 26.00 126.08 25.23 135.12 25.00 L 90.51 219.05 C 79.91 216.61 69.49 213.40 59.35 209.45 Z M 147.02 25.00 C 156.06 25.23 165.07 26.00 174.02 27.32 L 206.11 166.92 L 234.12 44.99 C 242.23 48.66 250.12 52.82 257.74 57.43 L 222.79 209.45 C 212.65 213.40 202.24 216.61 191.63 219.05 Z M 147.02 25.00"/></symbol>
 </svg>
 
-<script src="three.min.js?v=8"></script>
+<script src="three.min.js?v=10"></script>
 <script>
-(function(){
+try{(function(){
 'use strict';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const stage=$('#stage');
-const isMobile=()=>matchMedia('(max-width:760px)').matches;
+const isMobile=()=>matchMedia('(max-width:760px),(max-width:1100px) and (orientation:portrait)').matches;
 const canHover=()=>matchMedia('(hover:hover)').matches;
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const T=window.THREE;
 
 /* ---------- night mode: 18:00–06:00 by the visitor's clock ---------- */
-(function(){const meta=document.querySelector('meta[name=theme-color]');function night(){const h=new Date().getHours();const on=h>=18||h<6;document.documentElement.classList.toggle('night',on);if(meta)meta.content=on?'#141413':'#E4E3DF'}night();setInterval(night,60000);document.addEventListener('visibilitychange',night)})();
+try{(function(){const meta=document.querySelector('meta[name=theme-color]');function night(){const h=new Date().getHours();const on=h>=18||h<6;document.documentElement.classList.toggle('night',on);if(meta)meta.content=on?'#141413':'#E4E3DF'}night();setInterval(night,60000);document.addEventListener('visibilitychange',night)})()}catch(e){console.warn('module failed',e)}
 
 /* ---------- toast ---------- */
 let toastT;const toastEl=$('#toast');
@@ -758,7 +798,7 @@ try{(function(){
   const floor=new T.Mesh(new T.PlaneGeometry(1,1),new T.ShadowMaterial({opacity:.42}));floor.receiveShadow=true;sc.add(floor);
   const dummy=new T.Object3D(),col=new T.Color();
   let W=0,H=0,S=null,u=1,R=10,beans=[],last=0,visible=true,hot=false,cycle=0,dumping=false,pouring=false,frame=0,dropAcc=0;
-  const CYCLE=46;
+  const CYCLE=23;
   function roastColor(t,out){const st=[[0x8F,0xA8,0x5C],[0xC8,0xB2,0x64],[0xB2,0x7A,0x48],[0x4E,0x2E,0x1A]];const p=Math.min(.999,Math.max(0,t))*3,i=Math.floor(p),f=p-i,a=st[i],b=st[i+1];return out.setRGB((a[0]+(b[0]-a[0])*f)/255,(a[1]+(b[1]-a[1])*f)/255,(a[2]+(b[2]-a[2])*f)/255).convertSRGBToLinear()}
   function resize(){
     const nW=widget.offsetWidth,nH=widget.offsetHeight;if(nW<10||nH<10)return;
@@ -823,7 +863,7 @@ try{(function(){
     separate();for(const b of beans)if(b.st==='bed')clampTray(b);
     for(let i=beans.length-1;i>=0;i--)if(beans[i].st==='gone')beans.splice(i,1);
     if(pouring&&beans.every(b=>b.st!=='pour'))pouring=false;
-    let n=0;const updCol=frame%4===0;
+    let n=0;const updCol=frame%4===0||frame<8;
     for(const b of beans){
       dummy.position.set(b.x,-b.y,b.rest*b.sc+b.z);dummy.rotation.set(b.rx,b.ry,-b.rz);dummy.scale.setScalar(R*b.sz*b.sc);
       dummy.updateMatrix();inst.setMatrixAt(n,dummy.matrix);
@@ -856,7 +896,7 @@ try{(function(){
   let rpF=0;function draw(now){
     if(isMobile()&&(rpF++%2)){requestAnimationFrame(draw);return}
     size();if(!W){requestAnimationFrame(draw);return}
-    const dt=(now-lastT)/1000;lastT=now;selfPhase=(selfPhase+dt/46)%1;
+    const dt=(now-lastT)/1000;lastT=now;selfPhase=(selfPhase+dt/23)%1;
     const phase=roast.phase>0?Math.min(1,roast.phase):selfPhase,m=phase*TOTAL;
     const padL=6,padR=6,padT=8,padB=14,gw=W-padL-padR,gh=H-padT-padB;
     const X=mm=>padL+gw*mm/TOTAL,Y=tt=>padT+gh*(1-(tt-80)/(220-80));
@@ -1053,8 +1093,7 @@ function layoutMobile(){
   else if(!m&&lr){lay.append(p2,row);stage.insertBefore(call,$('.hint'));stage.insertBefore(brew,$('.hint'));lr.remove()}
 }
 layoutMobile();addEventListener('resize',layoutMobile);
-})();
+})()}catch(e){console.warn('module failed',e)}
 </script>
 
-</body>
-</html>
+</body></html>
