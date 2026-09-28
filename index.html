@@ -643,12 +643,12 @@ const yearsOd=new Odometer($('#yearsOd'),'00+');setTimeout(()=>yearsOd.set('10+'
 /* ---------- Dubai time: date flap, clock ---------- */
 function dubai(){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dubai',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(new Date());const o={};p.forEach(x=>o[x.type]=x.value);if(o.hour==='24')o.hour='00';return o}
 const dx=dubai();
-$('#dayFlip').dataset.rolling='1';flipRoll($('#dayFlip'),dx.day,600);setTimeout(()=>{delete $('#dayFlip').dataset.rolling},600+2*120+4*340+800);$('#mon').textContent=dx.month.toUpperCase();
+flip($('#dayFlip'),dx.day);$('#mon').textContent=dx.month.toUpperCase();
 const ticks=$('#ticks');for(let i=0;i<60;i++){const a=i*6*Math.PI/180,big=i%5===0,r1=big?40:43,r2=46;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',50+Math.sin(a)*r1);l.setAttribute('y1',50-Math.cos(a)*r1);l.setAttribute('x2',50+Math.sin(a)*r2);l.setAttribute('y2',50-Math.cos(a)*r2);l.setAttribute('stroke',big?'#121212':'#B9B6AF');l.setAttribute('stroke-width',big?1.8:.8);ticks.appendChild(l)}
 const hh=$('#hh'),mh=$('#mh'),sh=$('#sh');
 function tick(){const t=dubai();const H=+t.hour,M=+t.minute,S=+t.second;
   hh.style.transform=`rotate(${(H%12)*30+M*.5}deg)`;mh.style.transform=`rotate(${M*6+S*.1}deg)`;sh.style.transform=`rotate(${S*6}deg)`;
-  const dayEl=$('#dayFlip');const ds=$$('.fd',dayEl);if(ds.length===2&&!dayEl.dataset.rolling&&!ds.some(x=>x.classList.contains('go'))&&ds.map(x=>x.dataset.v).join('')!==t.day)flipSet(dayEl,t.day);tick.day=t.day;const mo=t.month.toUpperCase();if($('#mon').textContent!==mo)$('#mon').textContent=mo}
+  const dayEl=$('#dayFlip');const ds=$$('.fd',dayEl);if(ds.length===2&&!ds.some(x=>x.classList.contains('go'))&&ds.map(x=>x.dataset.v).join('')!==t.day)flipSet(dayEl,t.day);tick.day=t.day;const mo=t.month.toUpperCase();if($('#mon').textContent!==mo)$('#mon').textContent=mo}
 tick();setInterval(tick,1000);
 
 /* ---------- weather: live on the domain (open-meteo), last known value inside the artifact ---------- */
