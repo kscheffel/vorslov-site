@@ -604,10 +604,10 @@ function flipDigit(d,ch){
   if(d.classList.contains('go')){d.dataset.q=ch;return}
   if(d.dataset.v===ch)return;
   $('.tn i',d).textContent=ch;$('.bn i',d).textContent=ch;
-  if(reduce){$('.tc i',d).textContent=ch;$('.bc i',d).textContent=ch;d.dataset.v=ch;return}
-  d.classList.add('go');const bn=$('.bn',d);
-  const done=()=>{bn.removeEventListener('animationend',done);$('.tc i',d).textContent=ch;$('.bc i',d).textContent=ch;d.classList.remove('go');d.dataset.v=ch;const q=d.dataset.q;if(q!==undefined){delete d.dataset.q;if(q!==ch)flipDigit(d,q)}};
-  bn.addEventListener('animationend',done);
+  if(reduce||document.hidden){$('.tc i',d).textContent=ch;$('.bc i',d).textContent=ch;d.dataset.v=ch;return}
+  d.classList.add('go');const bn=$('.bn',d);let fin=false;
+  const done=()=>{if(fin)return;fin=true;clearTimeout(tm);bn.removeEventListener('animationend',done);$('.tc i',d).textContent=ch;$('.bc i',d).textContent=ch;d.classList.remove('go');d.dataset.v=ch;const q=d.dataset.q;if(q!==undefined){delete d.dataset.q;if(q!==ch)flipDigit(d,q)}};
+  bn.addEventListener('animationend',done);const tm=setTimeout(done,600); // safety: if the animation never reports back (background tab, iOS), settle anyway
 }
 function flipSet(el,str){const ds=$$('.fd',el);[...str].forEach((ch,i)=>ds[i]&&flipDigit(ds[i],ch))}
 function flipRoll(el,str,delay){flip(el,str.replace(/[0-9]/g,'0'));const ds=$$('.fd',el);[...str].forEach((ch,i)=>{const n=3;for(let k=0;k<n;k++)setTimeout(()=>flipDigit(ds[i],String((Number(ch)+n-k)%10)),delay+i*120+k*340);setTimeout(()=>flipDigit(ds[i],ch),delay+i*120+n*340)})}
@@ -643,12 +643,12 @@ const yearsOd=new Odometer($('#yearsOd'),'00+');setTimeout(()=>yearsOd.set('10+'
 /* ---------- Dubai time: date flap, clock ---------- */
 function dubai(){const p=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Dubai',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(new Date());const o={};p.forEach(x=>o[x.type]=x.value);if(o.hour==='24')o.hour='00';return o}
 const dx=dubai();
-flipRoll($('#dayFlip'),dx.day,600);$('#mon').textContent=dx.month.toUpperCase();
+$('#dayFlip').dataset.rolling='1';flipRoll($('#dayFlip'),dx.day,600);setTimeout(()=>{delete $('#dayFlip').dataset.rolling},600+2*120+4*340+800);$('#mon').textContent=dx.month.toUpperCase();
 const ticks=$('#ticks');for(let i=0;i<60;i++){const a=i*6*Math.PI/180,big=i%5===0,r1=big?40:43,r2=46;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',50+Math.sin(a)*r1);l.setAttribute('y1',50-Math.cos(a)*r1);l.setAttribute('x2',50+Math.sin(a)*r2);l.setAttribute('y2',50-Math.cos(a)*r2);l.setAttribute('stroke',big?'#121212':'#B9B6AF');l.setAttribute('stroke-width',big?1.8:.8);ticks.appendChild(l)}
 const hh=$('#hh'),mh=$('#mh'),sh=$('#sh');
 function tick(){const t=dubai();const H=+t.hour,M=+t.minute,S=+t.second;
   hh.style.transform=`rotate(${(H%12)*30+M*.5}deg)`;mh.style.transform=`rotate(${M*6+S*.1}deg)`;sh.style.transform=`rotate(${S*6}deg)`;
-  const dayEl=$('#dayFlip');if(tick.day&&tick.day!==t.day&&$$('.fd',dayEl).length===2)flipSet(dayEl,t.day);tick.day=t.day;const mo=t.month.toUpperCase();if($('#mon').textContent!==mo)$('#mon').textContent=mo}
+  const dayEl=$('#dayFlip');const ds=$$('.fd',dayEl);if(ds.length===2&&!dayEl.dataset.rolling&&!ds.some(x=>x.classList.contains('go'))&&ds.map(x=>x.dataset.v).join('')!==t.day)flipSet(dayEl,t.day);tick.day=t.day;const mo=t.month.toUpperCase();if($('#mon').textContent!==mo)$('#mon').textContent=mo}
 tick();setInterval(tick,1000);
 
 /* ---------- weather: live on the domain (open-meteo), last known value inside the artifact ---------- */
@@ -943,7 +943,8 @@ async function fetchLive(){
   await Promise.all(FEEDS.map(async f=>{const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),8000);
     try{let items=null;
       try{const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(f.u),{signal:ctl.signal});const j=await r.json();if(j.status==='ok')items=j.items.map(i=>({t:i.title,l:i.link,d:i.pubDate.replace(' ','T')+'Z'}))}catch(_){}
-      if(!items){const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(f.u),{signal:ctl.signal});const x=new DOMParser().parseFromString(await r.text(),'text/xml');items=[...x.querySelectorAll('item')].map(i=>({t:i.querySelector('title')?.textContent||'',l:i.querySelector('link')?.textContent||'',d:i.querySelector('pubDate')?.textContent||''}))}
+      for(const px of ['https://api.allorigins.win/raw?url=','https://corsproxy.io/?url=']){if(items)break;try{const r=await fetch(px+encodeURIComponent(f.u),{signal:ctl.signal});const x=new DOMParser().parseFromString(await r.text(),'text/xml');const got=[...x.querySelectorAll('item')].map(i=>({t:i.querySelector('title')?.textContent||'',l:i.querySelector('link')?.textContent||'',d:i.querySelector('pubDate')?.textContent||''}));if(got.length)items=got}catch(_){}}
+      if(!items)throw 0;
       items.slice(0,6).forEach(i=>out.push({s:f.s,t:i.t.trim(),l:i.l.trim(),d:i.d}));
     }catch(_){}finally{clearTimeout(to)}}));
   fetching=false;
